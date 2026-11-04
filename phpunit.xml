@@ -12,6 +12,10 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <!-- Tests must not depend on a key file path exported in the shell. -->
+        <server name="ENV_CIPHER_KEY_FILE" value=""/>
+    </php>
     <source>
         <include>
             <directory>src</directory>
