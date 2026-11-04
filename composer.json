@@ -1,0 +1,61 @@
+{
+    "name": "ikapelyushny/laravel-env-cipher",
+    "description": "Encrypted .env values and Docker secret files for Laravel configuration.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "env", "dotenv", "encryption", "secrets", "docker"],
+    "authors": [
+        {"name": "Igor Kapelyushny"}
+    ],
+    "require": {
+        "php": "^8.4",
+        "illuminate/console": "^13.0",
+        "illuminate/encryption": "^13.0",
+        "illuminate/support": "^13.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.32",
+        "orchestra/testbench": "^11.3",
+        "pestphp/pest": "^5.3",
+        "phpstan/phpstan": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ikapelyushny\\EnvCipher\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ikapelyushny\\EnvCipher\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ikapelyushny\\EnvCipher\\EnvCipherServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "lint": "pint",
+        "lint:check": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "test": "pest",
+        "check": [
+            "@lint:check",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
