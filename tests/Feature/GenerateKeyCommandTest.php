@@ -34,12 +34,26 @@ it('refuses to overwrite an existing key without --force', function (): void {
 
 it('overwrites an existing key with --force', function (): void {
     file_put_contents($this->path, 'old');
+    chmod($this->path, 0644);
 
     $this->artisan('env-cipher:key', ['path' => $this->path, '--force' => true])->assertSuccessful();
 
-    expect(file_get_contents($this->path))->toStartWith('base64:');
+    expect(file_get_contents($this->path))->toStartWith('base64:')
+        ->and(fileperms($this->path) & 0777)->toBe(0600);
 });
 
 it('fails when the directory does not exist', function (): void {
     $this->artisan('env-cipher:key', ['path' => '/nonexistent-dir/key'])->assertFailed();
+});
+
+it('fails cleanly when the path is a directory', function (): void {
+    mkdir($this->path);
+
+    try {
+        $this->artisan('env-cipher:key', ['path' => $this->path, '--force' => true])
+            ->expectsOutputToContain('is a directory')
+            ->assertFailed();
+    } finally {
+        rmdir($this->path);
+    }
 });

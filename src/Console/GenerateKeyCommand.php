@@ -25,6 +25,12 @@ final class GenerateKeyCommand extends Command
             return self::FAILURE;
         }
 
+        if (is_dir($path)) {
+            $this->components->error("Path [{$path}] is a directory.");
+
+            return self::FAILURE;
+        }
+
         if (file_exists($path) && $this->option('force') !== true) {
             $this->components->error("File [{$path}] already exists. Use --force to overwrite it.");
 
@@ -42,6 +48,10 @@ final class GenerateKeyCommand extends Command
         $previousUmask = umask(0077);
 
         try {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+
             file_put_contents($path, EnvCipher::generateKey() . PHP_EOL);
             chmod($path, 0600);
         } finally {

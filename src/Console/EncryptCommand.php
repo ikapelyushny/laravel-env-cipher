@@ -21,18 +21,18 @@ final class EncryptCommand extends Command
         $option = $this->option('key-file');
         $keyFile = is_string($option) && $option !== '' ? $option : SecureEnv::keyFilePath();
 
-        $value = $this->secret('Value to encrypt');
-
-        if (!is_string($value) || $value === '') {
-            $this->components->error('Nothing to encrypt.');
-
-            return self::FAILURE;
-        }
-
         try {
             $cipher = EnvCipher::fromKeyFile($keyFile);
         } catch (EnvCipherException $e) {
             $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $value = $this->secret('Value to encrypt', false);
+
+        if (!is_string($value) || $value === '') {
+            $this->components->error('Nothing to encrypt.');
 
             return self::FAILURE;
         }
