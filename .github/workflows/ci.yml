@@ -5,6 +5,9 @@ on:
   push:
     branches: [master, develop]
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-24.04

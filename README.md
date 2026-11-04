@@ -6,6 +6,8 @@ Keep secrets in `.env` encrypted and read Docker secret files from Laravel confi
 - The key lives outside the project, by default in the Docker secret `/run/secrets/env_cipher_key`.
 - A leaked `.env` is useless without the key file.
 
+Requires PHP 8.4+ and Laravel 13.
+
 ## Installation
 
 The package is not on Packagist yet and has no tagged release. Install it from GitHub:
@@ -26,7 +28,7 @@ Replace `env()` with `secure_env()` for secrets:
 
 `secure_env($key, $default)` resolves a value in this order:
 
-1. If `<KEY>_FILE` is set, it returns the contents of that file without the trailing newline (Docker secrets). Only a trailing `\r\n` is stripped; the rest is returned byte-exact.
+1. If `<KEY>_FILE` is set, it returns the contents of that file (Docker secrets). Trailing line breaks are stripped; everything else, including spaces, is returned byte-exact.
 2. Otherwise, if `<KEY>` starts with `cipher:`, it decrypts the value with the key from `ENV_CIPHER_KEY_FILE` (default `/run/secrets/env_cipher_key`).
 3. Otherwise it returns the value as is, so plain values keep working in local development.
 
@@ -63,7 +65,7 @@ php artisan env-cipher:encrypt --key-file=/path/to/env_cipher_key
 
 ### Key file and rotation
 
-- A `cipher:` value needs the key file at boot. If you do not want a key in local development, use plain values there.
+- A `cipher:` value needs the key file whenever the configuration loads: every request, every artisan command, and Composer's `package:discover` after `composer install` or `dump-autoload`. If you do not want a key in local development, use plain values there.
 - To rotate the key, re-encrypt the values with the new key, then restart long-running processes (Octane, queue workers, Horizon). They keep resolved config and loaded keys in memory.
 
 ## License
