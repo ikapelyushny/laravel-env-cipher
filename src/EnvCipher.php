@@ -23,7 +23,7 @@ final readonly class EnvCipher
 
     private Encrypter $encrypter;
 
-    public function __construct(#[SensitiveParameter] string $rawKey)
+    private function __construct(#[SensitiveParameter] string $rawKey)
     {
         if (!Encrypter::supported($rawKey, self::CIPHER)) {
             throw EnvCipherException::invalidKey();
@@ -40,7 +40,7 @@ final readonly class EnvCipher
     public static function fromEncodedKey(#[SensitiveParameter] string $encodedKey): self
     {
         $rawKey = str_starts_with($encodedKey, self::KEY_PREFIX)
-            ? base64_decode(mb_substr($encodedKey, mb_strlen(self::KEY_PREFIX)), true)
+            ? base64_decode(substr($encodedKey, strlen(self::KEY_PREFIX)), true)
             : false;
 
         if ($rawKey === false) {
@@ -58,7 +58,11 @@ final readonly class EnvCipher
             throw EnvCipherException::keyFileUnreadable($path);
         }
 
-        return self::fromEncodedKey(mb_trim($contents));
+        try {
+            return self::fromEncodedKey(mb_trim($contents));
+        } catch (EnvCipherException) {
+            throw EnvCipherException::invalidKeyFile($path);
+        }
     }
 
     /**
@@ -83,6 +87,6 @@ final readonly class EnvCipher
             throw new DecryptException('Value is not prefixed with "' . self::PREFIX . '".');
         }
 
-        return $this->encrypter->decryptString(mb_substr($value, mb_strlen(self::PREFIX)));
+        return $this->encrypter->decryptString(substr($value, strlen(self::PREFIX)));
     }
 }

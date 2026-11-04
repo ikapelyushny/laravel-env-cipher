@@ -80,3 +80,36 @@ it('loads the key from a file and ignores the trailing newline', function (): vo
 it('explains a missing key file without leaking anything', function (): void {
     EnvCipher::fromKeyFile('/nonexistent/env_cipher_key');
 })->throws(EnvCipherException::class, 'key file [/nonexistent/env_cipher_key] is missing or unreadable');
+
+it('decrypts values in the published format', function (): void {
+    // Dummy key: bytes 0x00..0x1f. Guards the long-lived format of values stored in .env files.
+    $cipher = EnvCipher::fromEncodedKey('base64:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=');
+
+    expect($cipher->decrypt('cipher:eyJpdiI6IkVkVGpRbmc2SDNVM2ltTGYiLCJ2YWx1ZSI6IlpUM0J1U2MrMXZDT0lMdmkiLCJtYWMiOiIiLCJ0YWciOiJld05FM3lRT0kvUU5rL1VaN0xpdHdBPT0ifQ=='))
+        ->toBe('known-answer');
+});
+
+it('fails the GCM tag check when the ciphertext is tampered with', function (): void {
+    $cipher = EnvCipher::fromEncodedKey(EnvCipher::generateKey());
+
+    $payload = json_decode((string) base64_decode(mb_substr($cipher->encrypt('secret'), 7), true), true, flags: JSON_THROW_ON_ERROR);
+    $raw = (string) base64_decode($payload['value'], true);
+    $raw[0] = chr(ord($raw[0]) ^ 1);
+    $payload['value'] = base64_encode($raw);
+
+    $cipher->decrypt('cipher:' . base64_encode(json_encode($payload, JSON_THROW_ON_ERROR)));
+})->throws(DecryptException::class);
+
+it('names the key file but never its contents when the key is invalid', function (): void {
+    $contents = 'base64:' . base64_encode(random_bytes(16));
+    $path = tempFile($contents);
+
+    try {
+        EnvCipher::fromKeyFile($path);
+        $this->fail('Expected EnvCipherException.');
+    } catch (EnvCipherException $e) {
+        expect($e->getMessage())->toContain($path)->not->toContain($contents);
+    } finally {
+        unlink($path);
+    }
+});

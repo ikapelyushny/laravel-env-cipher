@@ -22,6 +22,11 @@ final class EnvCipherException extends RuntimeException
         return new self('env-cipher: key must be "base64:" followed by 32 random bytes encoded in base64. Generate one with "php artisan env-cipher:key".');
     }
 
+    public static function invalidKeyFile(string $path): self
+    {
+        return new self("env-cipher: key file [{$path}] does not contain a valid key (\"base64:\" followed by 32 random bytes encoded in base64). Generate one with \"php artisan env-cipher:key\".");
+    }
+
     public static function cannotDecrypt(string $variable, Throwable $previous): self
     {
         return new self("env-cipher: cannot decrypt [{$variable}]: wrong key or corrupted value.", 0, $previous);
