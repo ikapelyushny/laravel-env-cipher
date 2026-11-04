@@ -46,7 +46,7 @@ final class SecureEnv
     }
 
     /**
-     * Forgets loaded keys (tests, key rotation in long-running processes).
+     * Forgets loaded keys (tests).
      */
     public static function flush(): void
     {
@@ -68,6 +68,6 @@ final class SecureEnv
             throw EnvCipherException::secretFileUnreadable($key, $path);
         }
 
-        return mb_rtrim($contents, "\r\n");
+        return rtrim($contents, "\r\n");
     }
 }

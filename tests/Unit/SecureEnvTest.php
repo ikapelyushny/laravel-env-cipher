@@ -87,3 +87,38 @@ it('falls back to the default key file path', function (): void {
         expect(SecureEnv::keyFilePath())->toBe('/tmp/custom');
     });
 });
+
+it('keeps non-UTF-8 secret files byte-exact', function (): void {
+    $secretFile = tempFile("p\xE9ss\n");
+
+    withEnv(['EC_TEST_BIN_FILE' => $secretFile], function (): void {
+        expect(secure_env('EC_TEST_BIN'))->toBe("p\xE9ss");
+    });
+
+    unlink($secretFile);
+});
+
+it('returns cipher-looking secret file contents verbatim', function (): void {
+    $secretFile = tempFile("cipher:abc\n");
+
+    withEnv(['EC_TEST_RAW_FILE' => $secretFile], function (): void {
+        expect(secure_env('EC_TEST_RAW'))->toBe('cipher:abc');
+    });
+
+    unlink($secretFile);
+});
+
+it('falls back to <KEY> when <KEY>_FILE is empty', function (): void {
+    withEnv([
+        'EC_TEST_EMPTY_FILE' => '',
+        'EC_TEST_EMPTY' => 'plain',
+    ], function (): void {
+        expect(secure_env('EC_TEST_EMPTY'))->toBe('plain');
+    });
+});
+
+it('casts "true" to boolean like env()', function (): void {
+    withEnv(['EC_TEST_BOOL' => 'true'], function (): void {
+        expect(secure_env('EC_TEST_BOOL'))->toBeTrue();
+    });
+});
